@@ -56,5 +56,5 @@ parameters:
   - id: adminPassword
     name: 'adminPassword'
     description: 'The password for the Virtual Machine'
-    type: string
+    type: securestring
     required: true
