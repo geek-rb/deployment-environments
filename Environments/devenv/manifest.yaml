@@ -3,7 +3,7 @@ name: DevEnv
 version: 1.0.0
 summary: DevEnv App Environment
 description: Deploys DevEnv
-runner: BICEP
+runner: ARM
 templatePath: azuredeploy.json
 
 parameters:
