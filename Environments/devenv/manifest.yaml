@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://github.com/Azure/deployment-environments/releases/download/2022-11-11-preview/manifest.schema.json
+name: DevEnv
+version: 1.0.0
+summary: DevEnv App Environment
+description: Deploys DevEnv
+runner: BICEP
+templatePath: azuredeploy.json
+
+parameters:
+  - id: location
+    name: Location
+    description: 'The location of all resources.'
+    type: string
+    default: resourceGroup().location
+
+  - id: vNetHubId
+    name: 'vNetHubId'
+    description: 'The ID of the Hub vNet'
+    type: string
+    required: true
+
+  - id: vNetSpokePrefix
+    name: vNetSpokePrefix
+    description: 'The vnet spoke prefix.'
+    type: string
+    allowed:
+      - '10.10.200.0/29'
+      - '10.10.200.8/29'
+      - '10.10.200.16/29'
+      - '10.10.200.24/29'
+      - '10.10.200.32/29'
+      - '10.10.200.40/29'
+    default: '10.10.200.0/29'
+    
+  - id: nextHopIpAddress
+    name: 'nextHopIpAddress'
+    description: 'The ip address of the next hop'
+    type: string
+    required: true
+
+  - id: vmSize
+    name: 'vmSize'
+    description: 'The size of the Virtual Machine'
+    type: string
+    allowed:
+      - 'Standard_B1s'
+      - 'Standard_D2s_v3'
+    default: 'Standard_B1s'
+
+  - id: adminUsername
+    name: 'adminUsername'
+    description: 'The username for the Virtual Machine'
+    type: string
+    default: 'admin'
+
+  - id: adminPassword
+    name: 'adminPassword'
+    description: 'The password for the Virtual Machine'
+    type: string
+    required: true
