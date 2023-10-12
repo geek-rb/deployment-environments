@@ -1,0 +1,206 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.22.6.54827",
+      "templateHash": "3294000020642280677"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location of all resources"
+      }
+    },
+    "vNetHubId": {
+      "type": "string",
+      "defaultValue": "id....",
+      "metadata": {
+        "description": "The ID of the Hub vNet"
+      }
+    },
+    "vNetSpokePrefix": {
+      "type": "string",
+      "defaultValue": "10.10.200.0/29",
+      "allowedValues": [
+        "10.10.200.0/29",
+        "10.10.200.8/29",
+        "10.10.200.16/29",
+        "10.10.200.24/29",
+        "10.10.200.32/29",
+        "10.10.200.40/29"
+      ],
+      "metadata": {
+        "description": "The vnet spoke prefix"
+      }
+    },
+    "nextHopIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "The ip address of the next hop"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B1s",
+      "allowedValues": [
+        "Standard_B1s",
+        "Standard_D2s_v3"
+      ],
+      "metadata": {
+        "description": "The size of the Virtual Machine"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "admin",
+      "metadata": {
+        "description": "The username for the Virtual Machine"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the Virtual Machine"
+      }
+    }
+  },
+  "variables": {
+    "vnetSpokeName": "vnet-dev-01",
+    "subnetName": "sub-dev-01",
+    "vmName": "vm-dev-01"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/routeTables",
+      "apiVersion": "2023-05-01",
+      "name": "[format('def-udr-{0}', variables('vnetSpokeName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "disableBgpRoutePropagation": false,
+        "routes": [
+          {
+            "name": "def-route",
+            "properties": {
+              "addressPrefix": "0.0.0.0/0",
+              "hasBgpOverride": true,
+              "nextHopIpAddress": "[parameters('nextHopIpAddress')]",
+              "nextHopType": "VirtualAppliance"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('vnetSpokeName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vNetSpokePrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('vNetSpokePrefix')]",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', format('def-udr-{0}', variables('vnetSpokeName')))]"
+              }
+            }
+          }
+        ],
+        "virtualNetworkPeerings": [
+          {
+            "name": "[format('peering-{0}-to-hub', variables('vnetSpokeName'))]",
+            "properties": {
+              "allowVirtualNetworkAccess": true,
+              "allowForwardedTraffic": false,
+              "allowGatewayTransit": false,
+              "useRemoteGateways": false,
+              "remoteVirtualNetwork": {
+                "id": "[parameters('vNetHubId')]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/routeTables', format('def-udr-{0}', variables('vnetSpokeName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}-nic-01', variables('vmName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', variables('vnetSpokeName')), variables('subnetName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSpokeName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2023-07-01",
+      "name": "[variables('vmName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[format('{0}-os-01', variables('vmName'))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic-01', variables('vmName')))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic-01', variables('vmName')))]"
+      ]
+    }
+  ]
+}
