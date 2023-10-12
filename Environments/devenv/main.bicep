@@ -2,7 +2,7 @@
 param location string = resourceGroup().location
 
 @description('The ID of the Hub vNet')
-param vNetHubId string = 'id....'
+param vNetHubId string
 
 @description('The vnet spoke prefix')
 @allowed([
@@ -26,7 +26,7 @@ param nextHopIpAddress string
 param vmSize string = 'Standard_B1s'
 
 @description('The username for the Virtual Machine')
-param adminUsername string = 'admin'
+param adminUsername string = 'epamuser'
 
 @description('The password for the Virtual Machine')
 @secure()
@@ -94,22 +94,6 @@ resource vNetSpoke 'Microsoft.Network/virtualNetworks@2023-05-01' = {
     ]
   }
 }
-
-//vnet peering
-// resource vNetSpokeHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2022-07-01' = {
-//   parent: vNetSpoke
-//   name: 'peering-${vnetSpokeName}-to-hub'
-//   properties: {
-//     allowVirtualNetworkAccess: true
-//     allowForwardedTraffic: false
-//     allowGatewayTransit: false
-//     useRemoteGateways: false
-//     remoteVirtualNetwork: {
-//       id: vNetHubId
-//     }
-//   }
-// }
-
 
 // VM
 resource vmNic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
