@@ -36,7 +36,7 @@ parameters:
     name: 'nextHopIpAddress'
     description: 'The ip address of the next hop'
     type: string
-    required: true
+    # required: true
     default: '10.10.10.10'
 
   # - id: vmSize
