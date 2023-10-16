@@ -36,26 +36,25 @@ parameters:
     name: 'nextHopIpAddress'
     description: 'The ip address of the next hop'
     type: string
-    # required: true
-    default: '10.10.10.10'
+    required: true
 
-  # - id: vmSize
-  #   name: 'vmSize'
-  #   description: 'The size of the Virtual Machine'
-  #   type: string
-  #   allowed:
-  #     - 'Standard_B1s'
-  #     - 'Standard_D2s_v3'
-  #   default: 'Standard_B1s'
+  - id: vmSize
+    name: 'vmSize'
+    description: 'The size of the Virtual Machine'
+    type: string
+    allowed:
+      - 'Standard_B1s'
+      - 'Standard_D2s_v3'
+    default: 'Standard_B1s'
 
-  # - id: adminUsername
-  #   name: 'adminUsername'
-  #   description: 'The username for the Virtual Machine'
-  #   type: string
-  #   default: 'admin'
+  - id: adminUsername
+    name: 'adminUsername'
+    description: 'The username for the Virtual Machine'
+    type: string
+    default: 'admin'
 
-  # - id: adminPassword
-  #   name: 'adminPassword'
-  #   description: 'The password for the Virtual Machine'
-  #   type: string
-  #   required: true
+  - id: adminPassword
+    name: 'adminPassword'
+    description: 'The password for the Virtual Machine'
+    type: string
+    required: true
