@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "8298981435758106043"
+      "templateHash": "12538911931880212853"
     }
   },
   "parameters": {
@@ -43,11 +43,36 @@
       "metadata": {
         "description": "The ip address of the next hop"
       }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B1s",
+      "allowedValues": [
+        "Standard_B1s",
+        "Standard_D2s_v3"
+      ],
+      "metadata": {
+        "description": "The size of the Virtual Machine"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "epamuser",
+      "metadata": {
+        "description": "The username for the Virtual Machine"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the Virtual Machine"
+      }
     }
   },
   "variables": {
     "vnetSpokeName": "vnet-dev-01",
-    "subnetName": "sub-dev-01"
+    "subnetName": "sub-dev-01",
+    "vmName": "vm-dev-01"
   },
   "resources": [
     {
@@ -112,6 +137,72 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSpokeName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}-nic-01', variables('vmName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', variables('vnetSpokeName')), variables('subnetName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSpokeName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2023-07-01",
+      "name": "[variables('vmName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[format('{0}-os-01', variables('vmName'))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic-01', variables('vmName')))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic-01', variables('vmName')))]"
       ]
     }
   ]
