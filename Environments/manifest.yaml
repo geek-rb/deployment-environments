@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://github.com/Azure/deployment-environments/releases/download/2022-11-11-preview/manifest.schema.json
+name: DevEnv2
+version: 1.0.0
+summary: DevEnv2 App Environment
+description: Deploys DevEnv2
+runner: ARM
+templatePath: azuredeploy.json
+
+parameters:
+  - id: location
+    name: Location
+    description: 'The location of all resources.'
+    type: string
+    default: resourceGroup().location
+
+  - id: vNetSpokePrefix
+    name: vNetSpokePrefix
+    description: 'The vnet spoke prefix.'
+    type: string
+    allowed:
+      - '10.10.200.0/29'
+      - '10.10.200.8/29'
+      - '10.10.200.16/29'
+      - '10.10.200.24/29'
+      - '10.10.200.32/29'
+      - '10.10.200.40/29'
+    default: '10.10.200.0/29'
+    
