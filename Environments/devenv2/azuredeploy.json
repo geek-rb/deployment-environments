@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "16927959467762511452"
+      "templateHash": "1614447062753735054"
     }
   },
   "parameters": {
@@ -19,14 +19,6 @@
     "subnetPrefix": {
       "type": "string",
       "defaultValue": "10.10.200.0/29",
-      "allowedValues": [
-        "10.10.200.0/29",
-        "10.10.200.8/29",
-        "10.10.200.16/29",
-        "10.10.200.24/29",
-        "10.10.200.32/29",
-        "10.10.200.40/29"
-      ],
       "metadata": {
         "description": "The vnet spoke prefix"
       }
@@ -48,8 +40,8 @@
   },
   "variables": {
     "vnetName": "test_vnet",
-    "subnetName": "sub-dev-01",
-    "vmName": "vm-01"
+    "subnetName": "[format('devSubnet-{0}', replace(split(parameters('subnetPrefix'), '.')[3], '/', '-'))]",
+    "vmName": "[format('vm-{0}', variables('subnetName'))]"
   },
   "resources": [
     {
@@ -147,27 +139,24 @@
             "_generator": {
               "name": "bicep",
               "version": "0.22.6.54827",
-              "templateHash": "11449772261522005836"
+              "templateHash": "2096693348364003645"
             }
           },
           "parameters": {
             "vnetName": {
               "type": "string",
-              "defaultValue": "test_vnet",
               "metadata": {
                 "description": "The existing vnet"
               }
             },
             "subnetName": {
               "type": "string",
-              "defaultValue": "new_subnet",
               "metadata": {
                 "description": "The new subnet name"
               }
             },
             "subnetPrefix": {
               "type": "string",
-              "defaultValue": "10.10.200.0/29",
               "metadata": {
                 "description": "The vnet spoke prefix"
               }
